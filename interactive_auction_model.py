@@ -23,7 +23,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pulp
-import ipywidgets as widgets
+try:
+    import ipywidgets as widgets
+except ImportError:
+    widgets = None
 from sklearn.linear_model import LinearRegression
 
 # -----------------------------------------------------------------------------
@@ -524,65 +527,66 @@ _init_other = sorted(list(set(_init_pool[_init_pool["Is_Retained"] == 1]["Player
 _init_avail = [p for p in _init_data["players_list"] if p not in set(_init_same) and p not in set(_init_other)]
 _default_hammer = "Pat Cummins" if "Pat Cummins" in _init_avail else _init_avail[0]
 
-year_slider = widgets.IntSlider(
-    value=2024, min=2018, max=2026, step=1,
-    description="Auction Year:", continuous_update=False,
-    style={"description_width": "initial"}
-)
-sold_to_same_widget = widgets.SelectMultiple(
-    options=_init_data["players_list"],
-    value=tuple(p for p in _init_same if p in _init_data["players_list"]),
-    description="Sold to Same Team:",
-    rows=6, style={"description_width": "initial"}
-)
-sold_to_other_widget = widgets.SelectMultiple(
-    options=_init_data["players_list"],
-    value=tuple(p for p in _init_other if p in _init_data["players_list"]),
-    description="Sold to Other Team:",
-    rows=6, style={"description_width": "initial"}
-)
-player_on_hammer_dropdown = widgets.Dropdown(
-    options=_init_data["players_list"],
-    value=_default_hammer,
-    description="Player on Hammer:",
-    style={"description_width": "initial"}
-)
+if widgets is not None:
+    year_slider = widgets.IntSlider(
+        value=2024, min=2018, max=2026, step=1,
+        description="Auction Year:", continuous_update=False,
+        style={"description_width": "initial"}
+    )
+    sold_to_same_widget = widgets.SelectMultiple(
+        options=_init_data["players_list"],
+        value=tuple(p for p in _init_same if p in _init_data["players_list"]),
+        description="Sold to Same Team:",
+        rows=6, style={"description_width": "initial"}
+    )
+    sold_to_other_widget = widgets.SelectMultiple(
+        options=_init_data["players_list"],
+        value=tuple(p for p in _init_other if p in _init_data["players_list"]),
+        description="Sold to Other Team:",
+        rows=6, style={"description_width": "initial"}
+    )
+    player_on_hammer_dropdown = widgets.Dropdown(
+        options=_init_data["players_list"],
+        value=_default_hammer,
+        description="Player on Hammer:",
+        style={"description_width": "initial"}
+    )
 
 
-def _on_year_change(change):
-    yr = int(change["new"])
-    d = get_year_constants(yr)
-    plist = d["players_list"]
-    p_df = d["pool"]
-    ret = p_df[p_df["Is_Retained"] == 1]["Player Name"].tolist()
-    same_def = tuple(ret[:6]) if len(ret) >= 6 else tuple(plist[:4])
-    other_def = tuple(p for p in ret if p not in set(same_def))
-    sold_to_same_widget.options = plist
-    sold_to_same_widget.value = same_def
-    sold_to_other_widget.options = plist
-    sold_to_other_widget.value = other_def
-    player_on_hammer_dropdown.options = plist
-    rem = [p for p in plist if p not in set(same_def) and p not in set(other_def)]
-    player_on_hammer_dropdown.value = rem[0] if rem else plist[0]
+    def _on_year_change(change):
+        yr = int(change["new"])
+        d = get_year_constants(yr)
+        plist = d["players_list"]
+        p_df = d["pool"]
+        ret = p_df[p_df["Is_Retained"] == 1]["Player Name"].tolist()
+        same_def = tuple(ret[:6]) if len(ret) >= 6 else tuple(plist[:4])
+        other_def = tuple(p for p in ret if p not in set(same_def))
+        sold_to_same_widget.options = plist
+        sold_to_same_widget.value = same_def
+        sold_to_other_widget.options = plist
+        sold_to_other_widget.value = other_def
+        player_on_hammer_dropdown.options = plist
+        rem = [p for p in plist if p not in set(same_def) and p not in set(other_def)]
+        player_on_hammer_dropdown.value = rem[0] if rem else plist[0]
 
 
-year_slider.observe(_on_year_change, names="value")
+    year_slider.observe(_on_year_change, names="value")
 
-interactive_output = widgets.interactive_output(
-    interactive_auction_model,
-    {
-        "year": year_slider,
-        "sold_to_same_team": sold_to_same_widget,
-        "sold_to_other_team": sold_to_other_widget,
-        "player_on_hammer": player_on_hammer_dropdown
-    }
-)
+    interactive_output = widgets.interactive_output(
+        interactive_auction_model,
+        {
+            "year": year_slider,
+            "sold_to_same_team": sold_to_same_widget,
+            "sold_to_other_team": sold_to_other_widget,
+            "player_on_hammer": player_on_hammer_dropdown
+        }
+    )
 
-controls = widgets.VBox([
-    year_slider,
-    widgets.HBox([sold_to_same_widget, sold_to_other_widget]),
-    player_on_hammer_dropdown
-])
+    controls = widgets.VBox([
+        year_slider,
+        widgets.HBox([sold_to_same_widget, sold_to_other_widget]),
+        player_on_hammer_dropdown
+    ])
 
 if __name__ == "__main__":
     print("[Demo] Running interactive_auction_model for IPL 2024 (Pat Cummins on hammer)...")

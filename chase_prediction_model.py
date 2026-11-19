@@ -19,8 +19,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import HistGradientBoostingRegressor
-import ipywidgets as widgets
-from IPython.display import display
+try:
+    import ipywidgets as widgets
+    from IPython.display import display
+except ImportError:
+    widgets = None
+    display = None
 
 CACHE_FILE = "outputs/chase_model_cache.pkl"
 
@@ -277,57 +281,58 @@ def interactive_chase_model(current_runs, current_wickets, current_overs, target
     plot_chase_model(current_runs, current_wickets, current_overs, target, future_overs, season)
 
 
-current_runs_slider = widgets.IntSlider(
-    value=47, min=0, max=250, step=1,
-    description='Current Runs:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
-current_wickets_slider = widgets.IntSlider(
-    value=3, min=0, max=9, step=1,
-    description='Current Wickets:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
-current_overs_slider = widgets.IntSlider(
-    value=6, min=1, max=18, step=1,
-    description='Current Overs:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
-target_slider = widgets.IntSlider(
-    value=169, min=50, max=300, step=1,
-    description='Target:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
-future_overs_slider = widgets.IntSlider(
-    value=10, min=2, max=20, step=1,
-    description='Future Overs:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
-season_slider = widgets.IntSlider(
-    value=2024, min=2011, max=2026, step=1,
-    description='Season Context:', continuous_update=True,
-    style={'description_width': 'initial'}
-)
+if widgets is not None:
+    current_runs_slider = widgets.IntSlider(
+        value=47, min=0, max=250, step=1,
+        description='Current Runs:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
+    current_wickets_slider = widgets.IntSlider(
+        value=3, min=0, max=9, step=1,
+        description='Current Wickets:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
+    current_overs_slider = widgets.IntSlider(
+        value=6, min=1, max=18, step=1,
+        description='Current Overs:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
+    target_slider = widgets.IntSlider(
+        value=169, min=50, max=300, step=1,
+        description='Target:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
+    future_overs_slider = widgets.IntSlider(
+        value=10, min=2, max=20, step=1,
+        description='Future Overs:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
+    season_slider = widgets.IntSlider(
+        value=2024, min=2011, max=2026, step=1,
+        description='Season Context:', continuous_update=True,
+        style={'description_width': 'initial'}
+    )
 
-interactive_output = widgets.interactive_output(
-    interactive_chase_model,
-    {
-        'current_runs': current_runs_slider,
-        'current_wickets': current_wickets_slider,
-        'current_overs': current_overs_slider,
-        'target': target_slider,
-        'future_overs': future_overs_slider,
-        'season': season_slider
-    }
-)
+    interactive_output = widgets.interactive_output(
+        interactive_chase_model,
+        {
+            'current_runs': current_runs_slider,
+            'current_wickets': current_wickets_slider,
+            'current_overs': current_overs_slider,
+            'target': target_slider,
+            'future_overs': future_overs_slider,
+            'season': season_slider
+        }
+    )
 
-controls = widgets.VBox([
-    season_slider,
-    current_runs_slider,
-    current_wickets_slider,
-    current_overs_slider,
-    target_slider,
-    future_overs_slider
-])
+    controls = widgets.VBox([
+        season_slider,
+        current_runs_slider,
+        current_wickets_slider,
+        current_overs_slider,
+        target_slider,
+        future_overs_slider
+    ])
 
 if __name__ == "__main__":
     print("[Testing Generalized Chase Model on user test case...]")

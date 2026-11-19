@@ -317,7 +317,13 @@ def _solve_squad_lp(pool, total_purse, same_team, other_team,
         if len(idx) > 0:
             prob += x[idx[0]] == forced_val
 
-    res = prob.solve(pulp.HiGHS(msg=False))
+    try:
+        res = prob.solve(pulp.HiGHS(msg=False))
+    except Exception:
+        try:
+            res = prob.solve(pulp.PULP_CBC_CMD(msg=False))
+        except Exception:
+            res = prob.solve()
     if res.status != pulp.LpSolveStatus.Optimal:
         return False, -1.0, []
     chosen = [names[i] for i in range(n) if pulp.value(x[i]) > 0.5]
